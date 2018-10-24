@@ -7,10 +7,11 @@ import (
 	// randomdata "github.com/Pallinder/go-randomdata"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/icrowley/fake"
+	"github.com/panjf2000/ants"
 	"log"
 	"math/rand"
 	"strconv"
-	"sync"
+	// "sync"
 	"time"
 )
 
@@ -18,11 +19,12 @@ func main() {
 	var looptimes int = 100
 	var databaseurl string = "root:Git785230@tcp(114.67.83.235:3306)/testdb?charset=utf8"
 	db, err := sql.Open("mysql", databaseurl)
+	defer db.Close()
 	db.SetConnMaxLifetime(10 * time.Minute)
 	db.SetMaxIdleConns(20)
 	db.SetMaxOpenConns(200)
 	checkErr(err)
-
+	pool, _ := ants.NewPool(100)
 	//查询数据
 	// rows, err := db.Query("SELECT id,name,email,domain FROM company")
 	// checkErr(err)
@@ -52,7 +54,8 @@ func main() {
 	affect, err := res.RowsAffected()
 	checkErr(err)
 	fmt.Println(affect)
-	var wg sync.WaitGroup
+	intchan := make(chan int64)
+	// var wg sync.WaitGroup
 
 	if len(os.Args) == 2 {
 		// looptimes, err := strconv.ParseInt(os.Args[1], 10, 64)
@@ -64,9 +67,9 @@ func main() {
 	}
 
 	for i := 0; i < looptimes; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Add(-1)
+		// wg.Add(1)
+		pool.Submit(func() error {
+			// defer wg.Add(-1)
 			number := fake.DigitsN(10)
 			name := fake.CharactersN(20)
 			email := fake.EmailAddress()
@@ -78,12 +81,21 @@ func main() {
 			checkErr(err)
 			affect, err := res.RowsAffected()
 			checkErr(err)
-			fmt.Println(affect)
-			time.Sleep(500)
+			intchan <- affect
+			// time.Sleep(500)
+			return nil
 
-		}()
+		})
+
 	}
-	wg.Wait()
+
+	for i := 0; i < looptimes; i++ {
+		// fmt.Println(<-intchan)
+		fmt.Println(<-intchan)
+
+	}
+
+	// wg.Wait()
 	// res, err := stmt.Exec("astaxie", "研发部门", "2012-12-09", "abc@bcd.com", "abc@bcd.com", "West")
 	// checkErr(err)
 
@@ -134,7 +146,8 @@ func main() {
 	// fmt.Println(day)
 
 	// fmt.Println(fake.GetLangs())
-	db.Close()
+
+	os.Exit(0)
 
 }
 
