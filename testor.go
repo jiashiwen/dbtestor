@@ -7,6 +7,7 @@ import (
 	// randomdata "github.com/Pallinder/go-randomdata"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/icrowley/fake"
+	"log"
 	"math/rand"
 	"strconv"
 	"sync"
@@ -139,7 +140,8 @@ func main() {
 
 func checkErr(err error) {
 	if err != nil {
-		panic(err)
+		// panic(err)
+		log.Println(err)
 	}
 }
 
