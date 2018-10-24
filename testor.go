@@ -14,7 +14,9 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("mysql", "root:123456@tcp(114.67.83.235:3306)/testdb?charset=utf8")
+	var looptimes int = 100
+	var databaseurl string = "root:Git785230@tcp(rm-m5e48r0qq973fjf5jjo.mysql.rds.aliyuncs.com:3306)/testdb?charset=utf8"
+	db, err := sql.Open("mysql", databaseurl)
 	db.SetConnMaxLifetime(10 * time.Minute)
 	db.SetMaxIdleConns(20)
 	db.SetMaxOpenConns(200)
@@ -44,13 +46,12 @@ func main() {
 
 	fmt.Println(number, name, email, image, updatetime)
 
-	res, err := stmt.Exec(number, name, "email", imagebytes, updatetime)
+	res, err := stmt.Exec(number, name, email, imagebytes, updatetime)
 	checkErr(err)
 	affect, err := res.RowsAffected()
 	checkErr(err)
 	fmt.Println(affect)
 	var wg sync.WaitGroup
-	var looptimes int = 100
 
 	if len(os.Args) == 2 {
 		// looptimes, err := strconv.ParseInt(os.Args[1], 10, 64)
@@ -72,7 +73,7 @@ func main() {
 			imagebytes := []byte(image)
 			updatetime := randate()
 
-			res, err := stmt.Exec(number, name, "email", imagebytes, updatetime)
+			res, err := stmt.Exec(number, name, email, imagebytes, updatetime)
 			checkErr(err)
 			affect, err := res.RowsAffected()
 			checkErr(err)
